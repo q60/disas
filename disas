@@ -14,6 +14,7 @@ OFF="$ESC[0m"
 
 
 syntax=intel
+objdump=objdump
 path=
 noopt=0
 
@@ -26,6 +27,9 @@ for arg in "$@"; do
 			;;
 		--att)
 			syntax=att
+			;;
+		--avr)
+			objdump=avr-objdump
 			;;
 		--)
 			noopt=1
@@ -70,6 +74,7 @@ if [[ -z "$path" ]]; then
 	echo "Supported options:"
 	echo "--intel             Use Intel syntax (default)"
 	echo "--att               Use AT&T syntax"
+	echo "--avr               Use avr-objdump"
 	exit 1
 fi
 
@@ -97,7 +102,7 @@ while read -r idx name size vma rest; do
 	elif [[ $parse_vma -eq 2 ]]; then
 		parse_vma=1
 	fi
-done < <(objdump --headers "$path")
+done < <($objdump --headers "$path")
 address_length="$(printf "%x" "$max_address" | wc -c)"
 
 if [[ $address_length -lt 5 ]]; then
@@ -110,7 +115,7 @@ LBAR="$(yes | tr -d "\n" | head -c $((address_length + 2)) | sed s/y/─/g)"
 RBAR="$(yes | tr -d "\n" | head -c $(($(tput cols) - address_length - 3)) | sed s/y/─/g)"
 
 
-objdump \
+$objdump \
 	--disassemble \
 	--disassembler-color=color \
 	--demangle \
